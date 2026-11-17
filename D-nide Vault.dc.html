@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>D-nide Vault</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/broadsheet-62ff42d1-3f2c-4cf8-b2bc-edf063fdab52/styles.css">
+<script src="_ds/broadsheet-62ff42d1-3f2c-4cf8-b2bc-edf063fdab52/_ds_bundle.js"></script>
+<link rel="stylesheet" href="fonts/phosphor-duotone/style.css">
+<style>
+html body{margin:0;background:var(--color-neutral-300)}
+a{color:var(--color-accent-700)}a:hover{color:var(--color-accent-800)}
+[data-theme="dark"]{color-scheme:dark;--knob:#ecebea;--color-bg:#1d1b20;--color-accent-800:#99e0ff;--color-neutral-900:#000;--color-surface:#262423;--color-text:#ecebea;--color-divider:color-mix(in srgb,#ecebea 20%,transparent);--color-neutral-200:#2d2b2b;--color-neutral-300:#3a3837;--color-neutral-400:#55514f;--color-neutral-700:#a9a5a4;--color-neutral-800:#c9c5c4;--color-accent:#38a6cf;--color-accent-600:#62c5ee;--color-accent-700:#62c5ee;--color-accent-100:#0a303e;--color-accent-2-700:#ff90b1;--shadow-sm:0 1px 2px rgba(0,0,0,.5);--shadow-md:0 3px 10px rgba(0,0,0,.5);--shadow-lg:0 12px 32px rgba(0,0,0,.6)}
+[data-theme="dark"] .btn-primary:active{background:var(--color-accent-600)}
+@keyframes folioIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:30px 10px;box-sizing:border-box">
+<x-import component-from-global-scope="AndroidDevice" from="./android-frame.jsx" dark="{{ dark }}" hint-size="412px,892px">
+<div data-theme="{{ theme }}" onPointerDown="{{ touch }}" onKeyDown="{{ touch }}" style="position:relative;height:100%;display:flex;flex-direction:column;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);font-size:16px;line-height:1.5;font-variant-numeric:tabular-nums">
+<div style="flex:1;overflow:auto;min-height:0;scrollbar-width:none">
+
+<sc-if value="{{ isOnboard }}" hint-placeholder-val="{{ true }}">
+<div data-screen-label="Create master password" style="padding:30px 24px 40px;display:flex;flex-direction:column;gap:20px">
+  <div style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-700)">{{ onbKicker }}</div>
+  <h1 style="font-size:36px;margin:0;text-wrap:pretty">{{ onbTitle }}</h1>
+  <p style="margin:0;max-width:300px;text-wrap:pretty">It encrypts everything in the vault on this phone. It is never stored or sent anywhere, so it cannot be recovered if you forget it.</p>
+  <div class="field" style="margin-top:10px">
+    <label for="mp1">Master password</label>
+    <div style="display:flex;gap:10px">
+      <input id="mp1" class="input" type="{{ pwType }}" value="{{ pw }}" onChange="{{ setPw }}" autocomplete="off" style="min-height:48px;font-size:17px;flex:1;min-width:0">
+      <button class="btn btn-secondary btn-icon" onClick="{{ toggleShowPw }}" aria-label="Show or hide password" style="width:48px;height:48px;flex:none"><i class="ph-duotone {{ pwEye }}" style="font-size:22px"></i></button>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div style="display:flex;gap:5px">
+      <sc-for list="{{ pwMeter }}" as="m" hint-placeholder-count="4"><div style="flex:1;height:5px;border-radius:1px;background:{{ m.bg }};transition:background .2s"></div></sc-for>
+    </div>
+    <div style="font-size:13px;color:var(--color-neutral-700)">{{ pwStrength }}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 10px;font-size:13px">
+      <sc-for list="{{ reqs }}" as="r" hint-placeholder-count="4"><div style="display:flex;align-items:center;gap:6px;color:{{ r.color }}"><i class="ph-duotone {{ r.icon }}" style="font-size:16px"></i><span>{{ r.label }}</span></div></sc-for>
+    </div>
+  </div>
+  <div class="field">
+    <label for="mp2">Type it again</label>
+    <input id="mp2" class="input" type="{{ pwType }}" value="{{ pw2 }}" onChange="{{ setPw2 }}" autocomplete="off" style="min-height:48px;font-size:17px">
+    <div style="font-size:13px;min-height:20px;margin-top:5px;color:var(--color-accent-2-700)">{{ matchMsg }}</div>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center">
+    <button class="btn btn-primary" disabled="{{ pwInvalid }}" onClick="{{ submitMaster }}" style="min-height:48px;font-size:16px;padding-inline:24px">{{ onbCta }}</button>
+    <sc-if value="{{ changing }}" hint-placeholder-val="{{ false }}"><button class="btn btn-ghost" onClick="{{ goSecurity }}" style="min-height:48px;font-size:16px;padding-inline:10px">Cancel</button></sc-if>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isBio }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Fingerprint setup" style="padding:30px 24px 40px;display:flex;flex-direction:column;gap:20px;animation:folioIn .25s">
+  <div style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-700)">D-nide · Step 2 of 2</div>
+  <h1 style="font-size:36px;margin:0">Unlock with your fingerprint</h1>
+  <p style="margin:0;max-width:300px;text-wrap:pretty">Faster day to day. D-nide still asks for the master password after a restart and before any backup is restored.</p>
+  <i class="ph-duotone ph-fingerprint" style="font-size:96px;color:var(--color-accent);margin:20px 0"></i>
+  <div style="display:flex;gap:10px">
+    <button class="btn btn-primary" onClick="{{ bioYes }}" style="min-height:48px;font-size:16px;padding-inline:24px">Turn on</button>
+    <button class="btn btn-ghost" onClick="{{ bioNo }}" style="min-height:48px;font-size:16px;padding-inline:10px">Not now</button>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isUnlock }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Unlock" style="padding:60px 24px 40px;display:flex;flex-direction:column;gap:20px;animation:folioIn .25s">
+  <div style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-700)">D-nide</div>
+  <h1 style="font-size:48px;margin:0">Locked</h1>
+  <p style="margin:0;max-width:300px">{{ lockMsg }}</p>
+  <div class="field" style="margin-top:10px">
+    <label for="ul">Master password</label>
+    <input id="ul" class="input" type="password" value="{{ unlockPw }}" onChange="{{ setUnlockPw }}" onKeyDown="{{ unlockKey }}" autocomplete="off" style="min-height:48px;font-size:17px">
+    <div style="font-size:13px;min-height:20px;margin-top:5px;color:var(--color-accent-2-700)">{{ unlockErr }}</div>
+  </div>
+  <button class="btn btn-primary" onClick="{{ tryUnlock }}" style="min-height:48px;font-size:16px;align-self:flex-start;padding-inline:24px">Unlock</button>
+  <sc-if value="{{ bio }}" hint-placeholder-val="{{ true }}">
+    <button onClick="{{ bioUnlock }}" style="margin-top:30px;align-self:flex-start;display:flex;align-items:center;gap:15px;background:none;border:0;padding:10px 10px 10px 0;font:inherit;color:var(--color-accent-700);cursor:pointer;border-radius:2px" style-hover="background:var(--color-accent-100)">
+      <i class="ph-duotone ph-fingerprint" style="font-size:56px;color:var(--color-accent)"></i><span>Use fingerprint</span>
+    </button>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ isHome }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Vault" style="padding:24px 0 100px;animation:folioIn .25s">
+  <div style="padding:0 24px;display:flex;flex-direction:column;gap:5px">
+    <div style="font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-neutral-700)">{{ today }}</div>
+    <h1 style="font-size:48px;margin:0">Vault</h1>
+    <div style="font-size:14px;color:var(--color-neutral-700)">{{ total }} items · {{ backupLine }}</div>
+  </div>
+  <div style="padding:20px 24px 15px;position:relative">
+    <i class="ph-duotone ph-magnifying-glass" style="position:absolute;left:36px;top:33px;font-size:20px;color:var(--color-neutral-700)"></i>
+    <input class="input" placeholder="Search the vault" value="{{ query }}" onChange="{{ setQuery }}" style="min-height:48px;font-size:16px;padding-left:40px">
+  </div>
+  <sc-if value="{{ notSearching }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;align-items:center;gap:10px;padding:0 12px 5px 24px">
+      <span style="flex:1;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-neutral-700)">Categories</span>
+      <sc-if value="{{ reordering }}" hint-placeholder-val="{{ false }}"><button class="btn btn-ghost" onClick="{{ resetOrder }}" style="min-height:44px;font-size:15px;padding-inline:10px">Reset to A–Z</button></sc-if>
+      <button class="btn {{ reorderBtnClass }}" onClick="{{ toggleReorder }}" style="min-height:44px;font-size:15px;padding-inline:14px"><i class="ph-duotone {{ reorderIcon }}" style="font-size:18px"></i>{{ reorderLabel }}</button>
+    </div>
+    <sc-if value="{{ reordering }}" hint-placeholder-val="{{ false }}"><p style="margin:0;padding:0 24px 10px;font-size:13px;color:var(--color-neutral-700)">Move categories up or down. Your order is saved on this phone.</p></sc-if>
+    <div style="display:flex;flex-direction:column">
+      <sc-for list="{{ cats }}" as="c" hint-placeholder-count="8">
+        <sc-if value="{{ notReordering }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ c.open }}" style="display:flex;align-items:center;gap:15px;min-height:62px;padding:0 24px;width:100%;background:none;border:0;font:inherit;color:inherit;text-align:left;cursor:pointer" style-hover="background:color-mix(in srgb, var(--color-text) 5%, transparent)" style-active="background:var(--color-accent-100)">
+          <i class="ph-duotone {{ c.icon }}" style="font-size:28px;color:var(--color-accent)"></i>
+          <span style="flex:1;font-size:20px;font-weight:600;letter-spacing:-0.01em">{{ c.name }}</span>
+          <span style="font-size:20px;color:var(--color-neutral-700)">{{ c.count }}</span>
+        </button>
+        </sc-if>
+        <sc-if value="{{ reordering }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;gap:15px;min-height:62px;padding:0 12px 0 24px;background:{{ c.flash }};transition:background .3s">
+          <i class="ph-duotone {{ c.icon }}" style="font-size:28px;color:var(--color-accent)"></i>
+          <span style="flex:1;min-width:0;font-size:20px;font-weight:600;letter-spacing:-0.01em">{{ c.name }}</span>
+          <button class="btn btn-ghost btn-icon" disabled="{{ c.first }}" onClick="{{ c.up }}" aria-label="Move {{ c.name }} up" style="width:48px;height:48px;flex:none"><i class="ph-duotone ph-arrow-up" style="font-size:22px"></i></button>
+          <button class="btn btn-ghost btn-icon" disabled="{{ c.last }}" onClick="{{ c.down }}" aria-label="Move {{ c.name }} down" style="width:48px;height:48px;flex:none"><i class="ph-duotone ph-arrow-down" style="font-size:22px"></i></button>
+        </div>
+        </sc-if>
+      </sc-for>
+    </div>
+  </sc-if>
+  <sc-if value="{{ searching }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-direction:column">
+      <sc-for list="{{ results }}" as="it" hint-placeholder-count="3">
+        <button onClick="{{ it.open }}" style="display:flex;align-items:center;gap:15px;min-height:62px;padding:5px 24px;width:100%;background:none;border:0;font:inherit;color:inherit;text-align:left;cursor:pointer" style-hover="background:color-mix(in srgb, var(--color-text) 5%, transparent)">
+          <i class="ph-duotone {{ it.icon }}" style="font-size:24px;color:var(--color-accent)"></i>
+          <span style="flex:1;min-width:0;display:flex;flex-direction:column"><span style="font-size:18px;font-weight:600">{{ it.title }}</span><span style="font-size:13px;color:var(--color-neutral-700)">{{ it.sub }}</span></span>
+        </button>
+      </sc-for>
+      <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}"><p style="padding:10px 24px;color:var(--color-neutral-700)">Nothing in the vault matches that.</p></sc-if>
+    </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ isCat }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Category" style="padding:10px 0 100px;animation:folioIn .25s">
+  <button class="btn btn-icon" onClick="{{ goHome }}" aria-label="Back" style="width:48px;height:48px;margin-left:12px"><i class="ph-duotone ph-arrow-left" style="font-size:24px"></i></button>
+  <div style="padding:10px 24px 20px;display:flex;flex-direction:column;gap:5px">
+    <h1 style="font-size:40px;margin:0">{{ catName }}</h1>
+    <div style="font-size:14px;color:var(--color-neutral-700)">{{ catCount }}</div>
+  </div>
+  <div style="display:flex;flex-direction:column">
+    <sc-for list="{{ catItems }}" as="it" hint-placeholder-count="3">
+      <button onClick="{{ it.open }}" style="display:flex;flex-direction:column;justify-content:center;min-height:66px;padding:5px 24px;width:100%;background:none;border:0;font:inherit;color:inherit;text-align:left;cursor:pointer" style-hover="background:color-mix(in srgb, var(--color-text) 5%, transparent)" style-active="background:var(--color-accent-100)">
+        <span style="font-size:20px;font-weight:600;letter-spacing:-0.01em">{{ it.title }}</span>
+        <span style="font-size:14px;color:var(--color-neutral-700)">{{ it.sub }}</span>
+      </button>
+    </sc-for>
+    <sc-if value="{{ catEmpty }}" hint-placeholder-val="{{ false }}"><p style="padding:0 24px;color:var(--color-neutral-700)">Nothing here yet. Tap the plus to add one.</p></sc-if>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isItem }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Item detail" style="padding:10px 0 40px;animation:folioIn .25s">
+  <div style="display:flex;align-items:center;padding:0 12px">
+    <button class="btn btn-icon" onClick="{{ backFromItem }}" aria-label="Back" style="width:48px;height:48px"><i class="ph-duotone ph-arrow-left" style="font-size:24px"></i></button>
+    <span style="flex:1"></span>
+    <sc-if value="{{ viewing }}" hint-placeholder-val="{{ true }}">
+      <button class="btn btn-ghost btn-icon" onClick="{{ startEdit }}" aria-label="Edit item" style="width:48px;height:48px"><i class="ph-duotone ph-pencil-simple" style="font-size:24px"></i></button>
+      <button class="btn btn-ghost btn-icon" onClick="{{ askDelete }}" aria-label="Delete item" style="width:48px;height:48px"><i class="ph-duotone ph-trash" style="font-size:24px"></i></button>
+    </sc-if>
+  </div>
+  <sc-if value="{{ viewing }}" hint-placeholder-val="{{ true }}">
+  <div style="padding:10px 24px 30px;display:flex;flex-direction:column;gap:5px">
+    <div style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-700)">{{ itemCat }}</div>
+    <h1 style="font-size:36px;margin:0;text-wrap:pretty">{{ itemTitle }}</h1>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:20px;padding:0 12px 0 24px">
+    <sc-for list="{{ fields }}" as="f" hint-placeholder-count="4">
+      <sc-if value="{{ f.isPhoto }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:5px;padding-right:12px">
+          <div style="display:flex;align-items:center;gap:5px"><div style="flex:1;font-size:12px;color:var(--color-neutral-700)">{{ f.label }}</div><button class="btn btn-ghost btn-icon" onClick="{{ f.remove }}" aria-label="Remove photo" style="width:44px;height:44px;flex:none"><i class="ph-duotone ph-trash" style="font-size:22px"></i></button></div>
+          {{ f.img }}
+        </div>
+      </sc-if>
+      <sc-if value="{{ f.isText }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;align-items:flex-end;gap:5px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;color:var(--color-neutral-700)">{{ f.label }}</div>
+          <div style="font-size:{{ f.size }};font-weight:{{ f.weight }};line-height:1.3;overflow-wrap:anywhere;filter:{{ f.filter }};transition:filter .15s;user-select:{{ f.select }}">{{ f.shown }}</div>
+        </div>
+        <sc-if value="{{ f.secret }}" hint-placeholder-val="{{ true }}"><button class="btn btn-ghost btn-icon" onClick="{{ f.toggle }}" aria-label="Reveal or hide" style="width:48px;height:48px;flex:none"><i class="ph-duotone {{ f.eye }}" style="font-size:24px"></i></button></sc-if>
+        <button class="btn btn-ghost btn-icon" onClick="{{ f.copy }}" aria-label="Copy" style="width:48px;height:48px;flex:none"><i class="ph-duotone ph-copy" style="font-size:24px"></i></button>
+      </div>
+      </sc-if>
+    </sc-for>
+  </div>
+  <div style="padding:30px 24px 0;display:flex;flex-direction:column;gap:10px">
+    <sc-if value="{{ notAddingField }}" hint-placeholder-val="{{ true }}"><button class="btn btn-secondary" onClick="{{ startField }}" style="min-height:48px;font-size:16px;align-self:flex-start;padding-inline:20px"><i class="ph-duotone ph-plus" style="font-size:20px"></i>Add a field</button><label class="btn btn-secondary" style="min-height:48px;font-size:16px;align-self:flex-start;padding-inline:20px"><i class="ph-duotone ph-camera" style="font-size:20px"></i>Add a photo<input type="file" accept="image/*" onChange="{{ pickItemPhoto }}" style="display:none"></label></sc-if>
+    <sc-if value="{{ addingField }}" hint-placeholder-val="{{ false }}">
+      <input class="input" placeholder="Field name" value="{{ nfName }}" onChange="{{ setNfName }}" autocomplete="off" style="min-height:48px;font-size:16px">
+      <input class="input" placeholder="Value" value="{{ nfValue }}" onChange="{{ setNfValue }}" autocomplete="off" style="min-height:48px;font-size:16px">
+      <button onClick="{{ toggleNfSecret }}" role="switch" aria-checked="{{ nfSecret }}" style="display:flex;align-items:center;gap:15px;min-height:44px;width:100%;background:none;border:0;padding:0;text-align:left;font:inherit;color:inherit;cursor:pointer"><span style="flex:1;font-size:15px">Hide this value</span><span style="width:48px;height:28px;border-radius:2px;background:{{ nfTrack }};position:relative;flex:none;transition:background .15s"><span style="position:absolute;top:3px;left:{{ nfKnob }};width:22px;height:22px;border-radius:1px;background:var(--knob, var(--color-bg));transition:left .15s;box-shadow:var(--shadow-sm)"></span></span></button>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-primary" disabled="{{ nfInvalid }}" onClick="{{ saveField }}" style="min-height:48px;font-size:16px;padding-inline:20px">Add field</button>
+        <button class="btn btn-ghost" onClick="{{ cancelField }}" style="min-height:48px;font-size:16px;padding-inline:10px">Cancel</button>
+      </div>
+    </sc-if>
+  </div>
+  <p style="padding:40px 24px 0;margin:0;font-size:13px;color:var(--color-neutral-700);max-width:300px">Revealed fields hide again when you leave this screen. Copied values are cleared from the clipboard after 30 seconds.</p>
+  </sc-if>
+  <sc-if value="{{ editing }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:10px 24px 0;display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <div style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-700)">Editing</div>
+        <h1 style="font-size:36px;margin:0">{{ itemCat }}</h1>
+      </div>
+      <div class="field"><label for="etitle">Name</label><input id="etitle" class="input" value="{{ editTitle }}" onChange="{{ setEditTitle }}" autocomplete="off" style="min-height:48px;font-size:16px"></div>
+      <sc-for list="{{ editFields }}" as="x" hint-placeholder-count="3">
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="display:flex;gap:10px;align-items:center">
+            <input class="input" placeholder="Field name" aria-label="Field name" value="{{ x.label }}" onChange="{{ x.setLabel }}" autocomplete="off" style="min-height:44px;font-size:14px;flex:1;min-width:0">
+            <button class="btn btn-ghost btn-icon" onClick="{{ x.remove }}" aria-label="Delete field" style="width:44px;height:44px;flex:none"><i class="ph-duotone ph-trash" style="font-size:22px"></i></button>
+          </div>
+          <sc-if value="{{ x.isPhoto }}" hint-placeholder-val="{{ false }}">{{ x.img }}</sc-if>
+          <sc-if value="{{ x.isText }}" hint-placeholder-val="{{ true }}">
+            <input class="input" placeholder="Value" aria-label="Value" value="{{ x.value }}" onChange="{{ x.setValue }}" autocomplete="off" style="min-height:48px;font-size:16px">
+            <button onClick="{{ x.toggleSecret }}" role="switch" aria-checked="{{ x.secret }}" style="display:flex;align-items:center;gap:15px;min-height:44px;width:100%;background:none;border:0;padding:0;text-align:left;font:inherit;color:inherit;cursor:pointer"><span style="flex:1;font-size:15px">Hide this value</span><span style="width:48px;height:28px;border-radius:2px;background:{{ x.track }};position:relative;flex:none;transition:background .15s"><span style="position:absolute;top:3px;left:{{ x.knob }};width:22px;height:22px;border-radius:1px;background:var(--knob, var(--color-bg));transition:left .15s;box-shadow:var(--shadow-sm)"></span></span></button>
+          </sc-if>
+        </div>
+      </sc-for>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-primary" disabled="{{ editInvalid }}" onClick="{{ saveEdit }}" style="min-height:48px;font-size:16px;padding-inline:20px">Save changes</button>
+        <button class="btn btn-ghost" onClick="{{ cancelEdit }}" style="min-height:48px;font-size:16px;padding-inline:10px">Cancel</button>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ isAdd }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Add item" style="padding:10px 0 40px;animation:folioIn .25s">
+  <button class="btn btn-icon" onClick="{{ addBack }}" aria-label="Back" style="width:48px;height:48px;margin-left:12px"><i class="ph-duotone ph-arrow-left" style="font-size:24px"></i></button>
+  <sc-if value="{{ addPick }}" hint-placeholder-val="{{ true }}">
+    <h1 style="font-size:36px;margin:0;padding:10px 24px 20px">What are you adding?</h1>
+    <div style="display:flex;flex-direction:column">
+      <sc-for list="{{ addTypes }}" as="c" hint-placeholder-count="8">
+        <button onClick="{{ c.pick }}" style="display:flex;align-items:center;gap:15px;min-height:58px;padding:0 24px;width:100%;background:none;border:0;font:inherit;color:inherit;text-align:left;cursor:pointer" style-hover="background:color-mix(in srgb, var(--color-text) 5%, transparent)">
+          <i class="ph-duotone {{ c.icon }}" style="font-size:26px;color:var(--color-accent)"></i><span style="font-size:19px;font-weight:600">{{ c.single }}</span>
+        </button>
+      </sc-for>
+    </div>
+  </sc-if>
+  <sc-if value="{{ addForm }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:10px 24px 0;display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <div style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-700)">New</div>
+        <h1 style="font-size:36px;margin:0">{{ addTypeName }}</h1>
+      </div>
+      <sc-for list="{{ addFields }}" as="f" hint-placeholder-count="4">
+        <div class="field"><label>{{ f.label }}</label><input class="input" value="{{ f.value }}" onChange="{{ f.set }}" autocomplete="off" style="min-height:48px;font-size:16px"></div>
+      </sc-for>
+      <sc-for list="{{ addExtras }}" as="x" hint-placeholder-count="0">
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="display:flex;gap:10px;align-items:center">
+            <input class="input" placeholder="Field name" value="{{ x.name }}" onChange="{{ x.setName }}" autocomplete="off" style="min-height:44px;font-size:14px;flex:1;min-width:0">
+            <button class="btn btn-ghost btn-icon" onClick="{{ x.remove }}" aria-label="Remove field" style="width:44px;height:44px;flex:none"><i class="ph-duotone ph-trash" style="font-size:22px"></i></button>
+          </div>
+          <sc-if value="{{ x.isPhoto }}" hint-placeholder-val="{{ false }}">{{ x.img }}</sc-if>
+          <sc-if value="{{ x.isText }}" hint-placeholder-val="{{ true }}">
+          <input class="input" placeholder="Value" value="{{ x.value }}" onChange="{{ x.setValue }}" autocomplete="off" style="min-height:48px;font-size:16px">
+          <button onClick="{{ x.toggleSecret }}" role="switch" aria-checked="{{ x.secret }}" style="display:flex;align-items:center;gap:15px;min-height:44px;width:100%;background:none;border:0;padding:0;text-align:left;font:inherit;color:inherit;cursor:pointer"><span style="flex:1;font-size:15px">Hide this value</span><span style="width:48px;height:28px;border-radius:2px;background:{{ x.track }};position:relative;flex:none;transition:background .15s"><span style="position:absolute;top:3px;left:{{ x.knob }};width:22px;height:22px;border-radius:1px;background:var(--knob, var(--color-bg));transition:left .15s;box-shadow:var(--shadow-sm)"></span></span></button>
+          </sc-if>
+        </div>
+      </sc-for>
+      <button class="btn btn-secondary" onClick="{{ addExtra }}" style="min-height:48px;font-size:16px;align-self:flex-start;padding-inline:20px"><i class="ph-duotone ph-plus" style="font-size:20px"></i>Add a field</button>
+      <label class="btn btn-secondary" style="min-height:48px;font-size:16px;align-self:flex-start;padding-inline:20px"><i class="ph-duotone ph-camera" style="font-size:20px"></i>Add a photo<input type="file" accept="image/*" onChange="{{ pickAddPhoto }}" style="display:none"></label>
+      <button class="btn btn-primary" disabled="{{ addInvalid }}" onClick="{{ saveItem }}" style="min-height:48px;font-size:16px;align-self:flex-start;padding-inline:24px">Save to vault</button>
+    </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ isGen }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Generator" style="padding:24px 24px 40px;display:flex;flex-direction:column;gap:20px;animation:folioIn .25s">
+  <h1 style="font-size:40px;margin:0">Generator</h1>
+  <div style="display:flex;border:1px solid var(--color-divider);border-radius:2px;overflow:hidden;align-self:flex-start">
+    <sc-for list="{{ genModes }}" as="o" hint-placeholder-count="3"><button onClick="{{ o.pick }}" style="min-height:44px;padding:0 15px;border:0;font:inherit;font-size:15px;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button></sc-for>
+  </div>
+  <div style="min-height:120px;display:flex;flex-direction:column;justify-content:center;gap:10px">
+    <div style="font-size:{{ genSize }};font-weight:600;line-height:1.25;overflow-wrap:anywhere;letter-spacing:0.01em"><sc-for list="{{ genChars }}" as="c" hint-placeholder-count="0"><span style="color:{{ c.color }}">{{ c.ch }}</span></sc-for></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="display:flex;gap:5px;width:120px"><sc-for list="{{ genMeter }}" as="m" hint-placeholder-count="4"><div style="flex:1;height:5px;border-radius:1px;background:{{ m.bg }}"></div></sc-for></div>
+      <span style="font-size:13px;color:var(--color-neutral-700)">{{ genStrength }}</span>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px">
+    <button class="btn btn-primary" onClick="{{ copyGen }}" style="min-height:48px;font-size:16px;padding-inline:20px"><i class="ph-duotone ph-copy" style="font-size:20px"></i>Copy</button>
+    <button class="btn btn-secondary" onClick="{{ regen }}" style="min-height:48px;font-size:16px;padding-inline:20px"><i class="ph-duotone ph-arrows-clockwise" style="font-size:20px"></i>New one</button>
+  </div>
+  <div style="margin-top:10px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline"><label for="glen" style="font-size:17px;font-weight:600">{{ genLenLabel }}</label><span style="font-size:17px">{{ genLen }}</span></div>
+    <input id="glen" type="range" min="{{ genMin }}" max="{{ genMax }}" value="{{ genLen }}" onChange="{{ setGenLen }}" style="width:100%;height:44px;accent-color:var(--color-accent);margin:0">
+  </div>
+  <div style="display:flex;flex-direction:column">
+    <sc-for list="{{ genToggles }}" as="t" hint-placeholder-count="3">
+      <button onClick="{{ t.toggle }}" role="switch" aria-checked="{{ t.on }}" style="display:flex;align-items:center;gap:15px;min-height:52px;width:100%;background:none;border:0;padding:0;text-align:left;font:inherit;color:inherit;cursor:pointer">
+        <span style="flex:1;font-size:17px">{{ t.label }}</span>
+        <span style="width:48px;height:28px;border-radius:2px;background:{{ t.track }};position:relative;flex:none;transition:background .15s"><span style="position:absolute;top:3px;left:{{ t.knob }};width:22px;height:22px;border-radius:1px;background:var(--knob, var(--color-bg));transition:left .15s;box-shadow:var(--shadow-sm)"></span></span>
+      </button>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isBackup }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Backup" style="padding:24px 24px 40px;display:flex;flex-direction:column;gap:30px;animation:folioIn .25s">
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <h1 style="font-size:40px;margin:0">Backup</h1>
+    <p style="margin:0;max-width:310px;text-wrap:pretty">The vault is encrypted on this phone with your master password before it is uploaded. Google Drive and Dropbox only ever receive an unreadable file.</p>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:20px">
+    <sc-for list="{{ dests }}" as="d" hint-placeholder-count="2">
+      <div style="display:flex;align-items:center;gap:15px">
+        <i class="ph-duotone {{ d.icon }}" style="font-size:32px;color:var(--color-accent)"></i>
+        <div style="flex:1;min-width:0"><div style="font-size:19px;font-weight:600">{{ d.name }}</div><div style="font-size:13px;color:var(--color-neutral-700);overflow-wrap:anywhere">{{ d.status }}</div></div>
+        <button class="btn {{ d.btnClass }}" disabled="{{ d.busy }}" onClick="{{ d.act }}" style="min-height:44px;font-size:15px;flex:none">{{ d.btn }}</button>
+      </div>
+    </sc-for>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <button class="btn btn-primary" disabled="{{ backupDisabled }}" onClick="{{ backupNow }}" style="min-height:48px;font-size:16px;align-self:flex-start;padding-inline:24px"><i class="ph-duotone ph-cloud-arrow-up" style="font-size:20px"></i>Back up now</button>
+    <button class="btn btn-secondary" disabled="{{ restoreDisabled }}" onClick="{{ openRestore }}" style="min-height:48px;font-size:16px;align-self:flex-start;padding-inline:24px"><i class="ph-duotone ph-cloud-arrow-down" style="font-size:20px"></i>Restore from backup</button>
+    <sc-if value="{{ backingUp }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <div style="height:5px;background:var(--color-neutral-300);border-radius:1px;overflow:hidden"><div style="height:100%;width:{{ backupPct }};background:var(--color-accent)"></div></div>
+        <div style="font-size:13px;color:var(--color-neutral-700)">{{ backupPhase }}</div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ noDest }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:var(--color-neutral-700)">Connect Google Drive or Dropbox first.</div></sc-if>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <h4 style="margin:0">Automatic backup</h4>
+    <div style="display:flex;border:1px solid var(--color-divider);border-radius:2px;overflow:hidden;align-self:flex-start">
+      <sc-for list="{{ schedules }}" as="o" hint-placeholder-count="3"><button onClick="{{ o.pick }}" style="min-height:44px;padding:0 18px;border:0;font:inherit;font-size:15px;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button></sc-for>
+    </div>
+    <div style="font-size:13px;color:var(--color-neutral-700)">{{ scheduleNote }}</div>
+    <button onClick="{{ toggleWifi }}" role="switch" aria-checked="{{ wifiOnly }}" style="display:flex;align-items:center;gap:15px;min-height:52px;width:100%;background:none;border:0;padding:0;text-align:left;font:inherit;color:inherit;cursor:pointer">
+      <span style="flex:1;font-size:17px">Only over Wi‑Fi</span>
+      <span style="width:48px;height:28px;border-radius:2px;background:{{ wifiTrack }};position:relative;flex:none;transition:background .15s"><span style="position:absolute;top:3px;left:{{ wifiKnob }};width:22px;height:22px;border-radius:1px;background:var(--knob, var(--color-bg));transition:left .15s;box-shadow:var(--shadow-sm)"></span></span>
+    </button>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isSecurity }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Security" style="padding:24px 24px 40px;display:flex;flex-direction:column;gap:30px;animation:folioIn .25s">
+  <h1 style="font-size:40px;margin:0">Security</h1>
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <sc-for list="{{ secToggles }}" as="t" hint-placeholder-count="2">
+      <button onClick="{{ t.toggle }}" role="switch" aria-checked="{{ t.on }}" style="display:flex;align-items:center;gap:15px;min-height:72px;width:100%;background:none;border:0;padding:0;text-align:left;font:inherit;color:inherit;cursor:pointer">
+        <i class="ph-duotone {{ t.icon }}" style="font-size:28px;color:var(--color-accent)"></i>
+        <span style="flex:1;display:flex;flex-direction:column"><span style="font-size:19px;font-weight:600">{{ t.label }}</span><span style="font-size:13px;color:var(--color-neutral-700)">{{ t.desc }}</span></span>
+        <span style="width:48px;height:28px;border-radius:2px;background:{{ t.track }};position:relative;flex:none;transition:background .15s"><span style="position:absolute;top:3px;left:{{ t.knob }};width:22px;height:22px;border-radius:1px;background:var(--knob, var(--color-bg));transition:left .15s;box-shadow:var(--shadow-sm)"></span></span>
+      </button>
+    </sc-for>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div style="display:flex;align-items:center;gap:15px"><i class="ph-duotone ph-timer" style="font-size:28px;color:var(--color-accent)"></i><span style="font-size:19px;font-weight:600">Auto-lock after</span></div>
+    <div style="display:flex;border:1px solid var(--color-divider);border-radius:2px;overflow:hidden;align-self:flex-start">
+      <sc-for list="{{ lockOpts }}" as="o" hint-placeholder-count="4"><button onClick="{{ o.pick }}" style="min-height:44px;padding:0 13px;border:0;font:inherit;font-size:15px;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button></sc-for>
+    </div>
+    <div style="font-size:13px;color:var(--color-neutral-700)">D-nide locks itself after this long without a touch, and whenever you switch apps.</div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-start">
+    <button class="btn btn-secondary" onClick="{{ changeMaster }}" style="min-height:48px;font-size:16px;padding-inline:20px"><i class="ph-duotone ph-key" style="font-size:20px"></i>Change master password</button>
+    <button class="btn btn-primary" onClick="{{ lockNow }}" style="min-height:48px;font-size:16px;padding-inline:20px"><i class="ph-duotone ph-lock" style="font-size:20px"></i>Lock now</button>
+  </div>
+</div>
+</sc-if>
+
+</div>
+
+<sc-if value="{{ showFab }}" hint-placeholder-val="{{ false }}">
+  <button class="btn btn-primary elev-md" onClick="{{ startAdd }}" aria-label="Add item" style="position:absolute;right:20px;bottom:88px;width:56px;height:56px;padding:0"><i class="ph-duotone ph-plus" style="font-size:26px"></i></button>
+</sc-if>
+<sc-if value="{{ restoreOpen }}" hint-placeholder-val="{{ false }}">
+  <div class="dialog-backdrop" data-screen-label="Restore dialog" style="position:absolute;z-index:5">
+    <div class="dialog" role="dialog" aria-modal="true" style="animation:folioIn .2s">
+      <div class="dialog-title">Restore from backup</div>
+      <sc-if value="{{ restoreForm }}" hint-placeholder-val="{{ true }}">
+        <div class="dialog-body">This replaces everything in the vault on this phone with the backup you choose.</div>
+        <div style="display:flex;flex-direction:column">
+          <sc-for list="{{ restoreSources }}" as="r" hint-placeholder-count="1">
+            <label class="radio" style="min-height:52px;align-items:center"><input type="radio" name="rsrc" checked="{{ r.on }}" onChange="{{ r.pick }}"><span class="dot"></span><span style="display:flex;flex-direction:column"><span style="font-size:16px;font-weight:600">{{ r.name }}</span><span style="font-size:13px;color:var(--color-neutral-700)">{{ r.when }}</span></span></label>
+          </sc-for>
+        </div>
+        <div class="field">
+          <label for="rpw">Master password used for that backup</label>
+          <input id="rpw" class="input" type="password" value="{{ restorePw }}" onChange="{{ setRestorePw }}" autocomplete="off" style="min-height:48px;font-size:16px">
+          <div style="font-size:13px;min-height:20px;margin-top:5px;color:var(--color-accent-2-700)">{{ restoreErr }}</div>
+        </div>
+        <div class="dialog-actions" style="margin-top:0">
+          <button class="btn btn-ghost" onClick="{{ closeRestore }}" style="min-height:48px;font-size:16px;padding-inline:10px">Cancel</button>
+          <button class="btn btn-primary" onClick="{{ runRestore }}" style="min-height:48px;font-size:16px;padding-inline:20px">Restore</button>
+        </div>
+      </sc-if>
+      <sc-if value="{{ restoreRunning }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:5px;padding:10px 0">
+          <div style="height:5px;background:var(--color-neutral-300);border-radius:1px;overflow:hidden"><div style="height:100%;width:{{ restorePct }};background:var(--color-accent)"></div></div>
+          <div style="font-size:13px;color:var(--color-neutral-700)">{{ restorePhase }}</div>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+</sc-if>
+<sc-if value="{{ confirmDelete }}" hint-placeholder-val="{{ false }}">
+  <div class="dialog-backdrop" data-screen-label="Delete dialog" style="position:absolute;z-index:5">
+    <div class="dialog" role="dialog" aria-modal="true" style="animation:folioIn .2s">
+      <div class="dialog-title">Delete “{{ itemTitle }}”?</div>
+      <div class="dialog-body">It is removed from the vault on this phone. Earlier backups still contain it until the next backup runs.</div>
+      <div class="dialog-actions">
+        <button class="btn btn-ghost" onClick="{{ cancelDelete }}" style="min-height:48px;font-size:16px;padding-inline:10px">Cancel</button>
+        <button class="btn btn-primary" onClick="{{ doDelete }}" style="min-height:48px;font-size:16px;padding-inline:20px">Delete</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+<sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+  <div role="status" style="position:absolute;left:20px;right:20px;bottom:{{ toastBottom }};background:var(--color-surface);box-shadow:var(--shadow-lg);border-radius:2px;padding:12px 15px;font-size:14px;animation:folioIn .2s">{{ toast }}</div>
+</sc-if>
+<sc-if value="{{ showNav }}" hint-placeholder-val="{{ false }}">
+  <nav style="flex:none;display:flex;background:var(--color-surface)">
+    <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+      <button onClick="{{ t.go }}" aria-label="{{ t.label }}" style="flex:1;min-height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;border:0;font:inherit;font-size:12px;font-weight:{{ t.weight }};color:{{ t.color }};cursor:pointer" style-hover="background:color-mix(in srgb, var(--color-text) 5%, transparent)">
+        <i class="ph-duotone {{ t.icon }}" style="font-size:24px"></i>
+        <sc-if value="{{ navLabels }}" hint-placeholder-val="{{ true }}"><span>{{ t.label }}</span></sc-if>
+      </button>
+    </sc-for>
+  </nav>
+</sc-if>
+</div>
+</x-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;startScreen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Onboarding&quot;,&quot;Unlock&quot;,&quot;Vault&quot;],&quot;default&quot;:&quot;Onboarding&quot;,&quot;tsType&quot;:&quot;'Onboarding'|'Unlock'|'Vault'&quot;},&quot;maskStyle&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Dots&quot;,&quot;Blur&quot;],&quot;default&quot;:&quot;Dots&quot;,&quot;tsType&quot;:&quot;'Dots'|'Blur'&quot;},&quot;navLabels&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+const CATS = [
+  { id: 'logins', name: 'Logins', single: 'Login', icon: 'ph-key', fields: [['Username', 0], ['Password', 1], ['Website', 0]] },
+  { id: 'cards', name: 'Cards', single: 'Credit or debit card', icon: 'ph-credit-card', fields: [['Cardholder', 0], ['Card number', 1], ['Expires', 0], ['Security code', 1], ['PIN', 1]] },
+  { id: 'rx', name: 'Prescriptions', single: 'Prescription', icon: 'ph-pill', fields: [['Dosage', 0], ['Rx number', 1], ['Prescriber', 0], ['Pharmacy', 0], ['Refills', 0]] },
+  { id: 'locks', name: 'Lock combinations', single: 'Lock combination', icon: 'ph-lock-key', fields: [['Combination', 1], ['Where', 0]] },
+  { id: 'notes', name: 'Secure notes', single: 'Secure note', icon: 'ph-note', fields: [['Note', 1]] },
+  { id: 'ids', name: 'IDs & documents', single: 'ID or document', icon: 'ph-identification-card', fields: [['Document number', 1], ['Expires', 0], ['Issued by', 0]] },
+  { id: 'wifi', name: 'Wi‑Fi', single: 'Wi‑Fi network', icon: 'ph-wifi-high', fields: [['Network', 0], ['Password', 1]] },
+  { id: 'custom', name: 'Custom', single: 'Something else', icon: 'ph-shapes', fields: [['Value', 1], ['Notes', 0]] },
+  { id: 'glasses', name: 'Glasses & contacts', single: 'Glasses or contacts prescription', icon: 'ph-eyeglasses', fields: [['Right eye (OD)', 0], ['Left eye (OS)', 0], ['Pupillary distance', 0], ['Prescriber', 0], ['Expires', 0]] },
+  { id: 'vehicles', name: 'Vehicles', single: 'Vehicle', icon: 'ph-car', fields: [['Make & model', 0], ['Year', 0], ['Plate', 0], ['VIN', 1], ['Insurance policy', 1]] },
+  { id: 'computers', name: 'Computers', single: 'Computer', icon: 'ph-laptop', fields: [['Username', 0], ['Password', 1], ['Serial number', 1], ['Recovery key', 1]] },
+  { id: 'email', name: 'Email accounts', single: 'Email account', icon: 'ph-envelope-simple', fields: [['Address', 0], ['Password', 1], ['Recovery email', 0], ['Backup codes', 1]] },
+  { id: 'shots', name: 'Inoculations', single: 'Inoculation', icon: 'ph-syringe', fields: [['Date given', 0], ['Lot number', 0], ['Given by', 0], ['Next dose', 0]] },
+  { id: 'insurance', name: 'Insurances', single: 'Insurance policy', icon: 'ph-umbrella', fields: [['Provider', 0], ['Policy number', 1], ['Group number', 0], ['Claims phone', 0], ['Renews', 0]] },
+  { id: 'licenses', name: 'Licenses & certs', single: 'License or certificate', icon: 'ph-certificate', fields: [['Number', 1], ['Issued by', 0], ['Issued', 0], ['Expires', 0]] },
+  { id: 'memberships', name: 'Memberships', single: 'Membership', icon: 'ph-identification-badge', fields: [['Provider', 0], ['Member number', 1], ['Renews', 0]] },
+  { id: 'pictures', name: 'Pictures', single: 'Picture', icon: 'ph-image', fields: [['Description', 0], ['Notes', 0]] },
+  { id: 'passport', name: 'Passport', single: 'Passport', icon: 'ph-globe-hemisphere-west', fields: [['Passport number', 1], ['Country', 0], ['Issued', 0], ['Expires', 0]] },
+  { id: 'serials', name: 'Serial numbers', single: 'Serial number', icon: 'ph-barcode', fields: [['Serial number', 1], ['Model', 0], ['Purchased', 0], ['Warranty until', 0]] },
+  { id: 'taxes', name: 'Taxes', single: 'Tax record', icon: 'ph-receipt', fields: [['Tax year', 0], ['Tax ID', 1], ['Filing PIN', 1], ['Preparer', 0]] },
+  { id: 'bank', name: 'Bank accounts', single: 'Bank account', icon: 'ph-bank', fields: [['Bank', 0], ['Account number', 1], ['Routing number', 1], ['Account type', 0]] },
+];
+const SORTED = [...CATS].sort((a, b) => a.id === 'custom' ? 1 : b.id === 'custom' ? -1 : a.name.localeCompare(b.name));
+const DEFAULT_ORDER = SORTED.map(c => c.id);
+const ORDER_KEY = 'dnide.categoryOrder';
+const F = (label, value, secret, big) => ({ label, value, secret: !!secret, big: !!big });
+const ITEMS = [
+  { id: 1, cat: 'logins', title: 'Northwind Bank', fields: [F('Username', 'dana.okafor@example.com'), F('Password', 'vT7#qLm2!xRw9Pze', 1), F('Website', 'northwindbank.example')] },
+  { id: 2, cat: 'logins', title: 'Parcel & Post', fields: [F('Username', 'dana.okafor'), F('Password', 'harbor-violin-cedar-41', 1), F('Website', 'parcelpost.example')] },
+  { id: 3, cat: 'logins', title: 'Streamhouse', fields: [F('Username', 'dana.okafor@example.com'), F('Password', 'Kp4$wn8Zr!2e', 1), F('Website', 'streamhouse.example')] },
+  { id: 4, cat: 'cards', title: 'Everyday Visa', fields: [F('Cardholder', 'Dana Okafor'), F('Card number', '4000 1234 5678 9010', 1), F('Expires', '08 / 29'), F('Security code', '417', 1), F('PIN', '6203', 1)] },
+  { id: 5, cat: 'cards', title: 'Travel Mastercard', fields: [F('Cardholder', 'Dana Okafor'), F('Card number', '5100 9876 5432 1098', 1), F('Expires', '02 / 28'), F('Security code', '882', 1), F('PIN', '1947', 1)] },
+  { id: 6, cat: 'rx', title: 'Lisinopril 10 mg', fields: [F('Dosage', 'One tablet daily, morning'), F('Rx number', '7741‑20953', 1), F('Prescriber', 'Dr. A. Mensah'), F('Pharmacy', 'Corner Pharmacy, Mill Street'), F('Refills', '2 left, until 14 Mar 2027')] },
+  { id: 7, cat: 'rx', title: 'Albuterol inhaler', fields: [F('Dosage', 'Two puffs as needed'), F('Rx number', '7741‑18840', 1), F('Prescriber', 'Dr. A. Mensah'), F('Pharmacy', 'Corner Pharmacy, Mill Street'), F('Refills', '1 left, until 2 Jan 2027')] },
+  { id: 8, cat: 'locks', title: 'Bike lock', fields: [F('Combination', '24 – 08 – 36', 1, 1), F('Where', 'Blue commuter bike')] },
+  { id: 9, cat: 'locks', title: 'Gym locker', fields: [F('Combination', '7 – 31 – 19', 1, 1), F('Where', 'Locker 112, second row')] },
+  { id: 10, cat: 'locks', title: 'Storage unit gate', fields: [F('Combination', '4096 #', 1, 1), F('Where', 'Unit C‑14')] },
+  { id: 11, cat: 'notes', title: 'Safe deposit box', fields: [F('Note', 'Box 318 at the Mill Street branch. Second key is with Sam.', 1)] },
+  { id: 12, cat: 'passport', title: 'Dana’s passport', fields: [F('Passport number', 'X4821907', 1), F('Country', 'Issued by the Passport Office'), F('Issued', '20 Jun 2021'), F('Expires', '19 Jun 2031')] },
+  { id: 13, cat: 'ids', title: "Driver's licence", fields: [F('Document number', 'OKAFO‑8520‑14DA', 1), F('Expires', '3 Sep 2029'), F('Issued by', 'Licensing Agency')] },
+  { id: 14, cat: 'wifi', title: 'Home Wi‑Fi', fields: [F('Network', 'Okafor‑5G'), F('Password', 'maple-orbit-2291-kettle', 1)] },
+  { id: 15, cat: 'custom', title: 'Alarm panel', fields: [F('Value', '5 5 1 0 then Away', 1, 1), F('Notes', 'Hallway keypad')] },
+  { id: 16, cat: 'glasses', title: 'Distance glasses', fields: [F('Right eye (OD)', '−2.25 / −0.50 × 180'), F('Left eye (OS)', '−2.00 / −0.75 × 170'), F('Pupillary distance', '63 mm'), F('Prescriber', 'Mill Street Opticians'), F('Expires', '8 May 2027')] },
+  { id: 17, cat: 'vehicles', title: 'Family hatchback', fields: [F('Make & model', 'Five‑door hatchback'), F('Year', '2022'), F('Plate', 'KD22 OKF'), F('VIN', '1HGBH41JXMN109186', 1), F('Insurance policy', 'MV‑4471‑88201', 1)] },
+  { id: 18, cat: 'computers', title: 'Work laptop', fields: [F('Username', 'dokafor'), F('Password', 'cedar-Plume-77-onyx', 1), F('Serial number', 'C02XK4Q9JGH7', 1), F('Recovery key', 'QF7M‑2LXD‑9R4T‑KP8W', 1)] },
+  { id: 19, cat: 'email', title: 'Personal email', fields: [F('Address', 'dana.okafor@example.com'), F('Password', 'Zr8!mN4$kLq2Tw', 1), F('Recovery email', 'sam.okafor@example.com'), F('Backup codes', '4471 9920 · 3085 6614 · 7729 0158', 1)] },
+  { id: 20, cat: 'shots', title: 'Tetanus booster', fields: [F('Date given', '12 Apr 2024'), F('Lot number', 'TD‑48213'), F('Given by', 'Mill Street Clinic'), F('Next dose', 'April 2034')] },
+  { id: 21, cat: 'insurance', title: 'Health insurance', fields: [F('Provider', 'Harbor Mutual'), F('Policy number', 'HM‑20481‑7755', 1), F('Group number', '88142'), F('Claims phone', '0800 555 0142'), F('Renews', '1 Jan 2027')] },
+  { id: 22, cat: 'licenses', title: 'First aid certificate', fields: [F('Number', 'FA‑2025‑30417', 1), F('Issued by', 'Community Safety Council'), F('Issued', '3 Mar 2025'), F('Expires', '3 Mar 2028')] },
+  { id: 23, cat: 'memberships', title: 'City library', fields: [F('Provider', 'City Library Service'), F('Member number', '2 9004 77123 6', 1), F('Renews', 'Does not expire')] },
+  { id: 24, cat: 'pictures', title: 'Home insurance inventory', fields: [F('Description', 'Living room, taken for the insurer'), F('Notes', 'Retake after the new sofa arrives')] },
+  { id: 25, cat: 'serials', title: 'Road bike frame', fields: [F('Serial number', 'WTU118C4092P', 1), F('Model', 'Aluminium road frame, 56 cm'), F('Purchased', '14 Jul 2023'), F('Warranty until', '14 Jul 2028')] },
+  { id: 26, cat: 'taxes', title: '2025 return', fields: [F('Tax year', '2025'), F('Tax ID', '900‑55‑0142', 1), F('Filing PIN', '48213', 1), F('Preparer', 'Mensah & Co. Accountants')] },
+  { id: 27, cat: 'bank', title: 'Joint current account', fields: [F('Bank', 'Northwind Bank'), F('Account number', '0048 2210 7731', 1), F('Routing number', '110000000', 1), F('Account type', 'Current, joint with Sam')] },
+];
+const WORDS = 'harbor violin cedar maple orbit kettle lantern meadow pebble quartz ribbon saddle thistle umber velvet walnut yonder zephyr amber birch copper dune ember fjord garnet heron indigo juniper kelp linen marble nectar onyx plume quill raven slate tundra'.split(' ');
+const ACC = 'var(--color-accent)', OFF = 'var(--color-neutral-400)';
+
+class Component extends DCLogic {
+  state = {
+    screen: null, master: null, pw: '', pw2: '', showPw: false, changing: false,
+    unlockPw: '', unlockErr: '', lockMsg: '', bio: true, shots: true, autoLock: 300,
+    query: '', catId: null, itemId: null, fromSearch: false, revealed: {}, toast: '', items: ITEMS,
+    addType: null, addVals: {}, addExtras: [], newField: null, restore: null, edit: null, confirmDelete: false, dark: false,
+    gen: { mode: 'Password', lens: { Password: 20, Passphrase: 5, PIN: 6 }, upper: true, nums: true, syms: true, clear: false, caps: true, addNum: true }, genValue: '',
+    drive: { on: true, busy: false, last: 'today, 09:12' }, dropbox: { on: false, busy: false, last: null },
+    pct: null, schedule: 'Daily', wifiOnly: true,
+    catOrder: DEFAULT_ORDER, reordering: false, moved: null,
+  };
+  loadOrder() {
+    try {
+      const v = JSON.parse(localStorage.getItem(ORDER_KEY));
+      if (Array.isArray(v)) { const known = v.filter(id => DEFAULT_ORDER.includes(id)); return [...known, ...DEFAULT_ORDER.filter(id => !known.includes(id))]; }
+    } catch (e) {}
+    return DEFAULT_ORDER;
+  }
+  saveOrder(order) { this.setState({ catOrder: order }); try { localStorage.setItem(ORDER_KEY, JSON.stringify(order)); } catch (e) {} }
+  moveCat(id, d) {
+    const o = [...this.state.catOrder], i = o.indexOf(id), j = i + d;
+    if (i < 0 || j < 0 || j >= o.length) return;
+    [o[i], o[j]] = [o[j], o[i]];
+    this.saveOrder(o);
+    this.setState({ moved: id }); clearTimeout(this.mv); this.mv = setTimeout(() => this.setState({ moved: null }), 600);
+  }
+  componentDidMount() {
+    this.last = Date.now();
+    this.tick = setInterval(() => {
+      if (!['onboard', 'bio', 'unlock'].includes(this.scr()) && Date.now() - this.last > this.state.autoLock * 1000) this.lock('D-nide locked itself after a period without activity.');
+    }, 1000);
+    this.setState({ genValue: this.make(this.state.gen), catOrder: this.loadOrder() });
+    this.onHide = () => { if (document.hidden && !['onboard', 'bio', 'unlock'].includes(this.scr())) this.lock('D-nide locked itself when you switched away.'); };
+    document.addEventListener('visibilitychange', this.onHide);
+  }
+  componentWillUnmount() { clearInterval(this.tick); clearInterval(this.bk); clearInterval(this.rs); clearTimeout(this.tt); clearTimeout(this.ct); clearTimeout(this.mv); document.removeEventListener('visibilitychange', this.onHide); }
+  scr() { return this.state.screen || ({ Onboarding: 'onboard', Unlock: 'unlock', Vault: 'home' })[this.props.startScreen] || 'onboard'; }
+  go(screen, extra) { this.setState({ screen, revealed: {}, newField: null, reordering: false, restore: null, edit: null, confirmDelete: false, ...(extra || {}) }); }
+  runRestore() {
+    const s = this.state, r = s.restore;
+    if (!r.pw) return this.setState({ restore: { ...r, err: 'Enter the master password.' } });
+    if (s.master && r.pw !== s.master) return this.setState({ restore: { ...r, err: "That password can't decrypt this backup." } });
+    this.setState({ restore: { ...r, pct: 0, err: '' } });
+    this.rs = setInterval(() => {
+      const cur = this.state.restore; if (!cur) return clearInterval(this.rs);
+      const p = cur.pct + 3;
+      if (p < 100) return this.setState({ restore: { ...cur, pct: p } });
+      clearInterval(this.rs);
+      this.setState(st => ({ restore: null, items: (st.snapshots && st.snapshots[cur.src]) || ITEMS }));
+      this.toast('Vault restored from ' + cur.srcName + '.');
+    }, 80);
+  }
+  lock(msg) { this.go('unlock', { unlockPw: '', unlockErr: '', lockMsg: msg || 'Enter your master password to open the vault.' }); }
+  toast(msg) { this.setState({ toast: msg }); clearTimeout(this.tt); this.tt = setTimeout(() => this.setState({ toast: '' }), 2600); }
+  copy(text, what) {
+    try { navigator.clipboard.writeText(text).catch(() => {}); } catch (e) {}
+    clearTimeout(this.ct);
+    this.ct = setTimeout(() => { try { navigator.clipboard.writeText('').catch(() => {}); } catch (e) {} }, 30000);
+    this.toast(what + ' copied. Clipboard clears in 30 seconds.'); }
+  readPhoto(e, cb) { const f = e.target.files && e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => cb(r.result); r.readAsDataURL(f); e.target.value = ''; }
+  rand(n) { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; }
+  make(g) {
+    const n = g.lens[g.mode];
+    if (g.mode === 'PIN') return Array.from({ length: n }, () => this.rand(10)).join('');
+    if (g.mode === 'Passphrase') {
+      const w = Array.from({ length: n }, () => { const x = WORDS[this.rand(WORDS.length)]; return g.caps ? x[0].toUpperCase() + x.slice(1) : x; });
+      return w.join('-') + (g.addNum ? '-' + (10 + this.rand(90)) : '');
+    }
+    let pool = g.clear ? 'abcdefghjkmnpqrstuvwxyz' : 'abcdefghijklmnopqrstuvwxyz';
+    if (g.upper) pool += g.clear ? 'ABCDEFGHJKLMNPQRSTUVWXYZ' : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    if (g.nums) pool += g.clear ? '23456789' : '0123456789';
+    if (g.syms) pool += '!#$%&*+-=?@';
+    return Array.from({ length: n }, () => pool[this.rand(pool.length)]).join('');
+  }
+  setGen(patch) { const g = { ...this.state.gen, ...patch }; this.setState({ gen: g, genValue: this.make(g) }); }
+  genBits(g) {
+    const n = g.lens[g.mode];
+    if (g.mode === 'PIN') return n * 3.32;
+    if (g.mode === 'Passphrase') return n * 12.9 + (g.addNum ? 6.5 : 0);
+    const pool = 26 + (g.upper ? 26 : 0) + (g.nums ? 10 : 0) + (g.syms ? 11 : 0);
+    return n * Math.log2(pool);
+  }
+  seg(opts, cur, set) { return opts.map(([v, label]) => ({ label: label || v, pick: () => set(v), bg: v === cur ? ACC : 'transparent', fg: v === cur ? 'var(--color-bg)' : 'var(--color-text)' })); }
+  sw(on) { return { on, track: on ? ACC : OFF, knob: on ? '23px' : '3px' }; }
+  connect(k) {
+    const d = this.state[k];
+    if (d.on) { this.setState({ [k]: { on: false, busy: false, last: null } }); return; }
+    this.setState({ [k]: { ...d, busy: true } });
+    setTimeout(() => this.setState({ [k]: { on: true, busy: false, last: null } }), 1000);
+  }
+  backupNow() {
+    this.setState({ pct: 0 });
+    this.bk = setInterval(() => {
+      const p = this.state.pct + 3;
+      if (p < 100) return this.setState({ pct: p });
+      clearInterval(this.bk);
+      const t = 'today, ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      this.setState(s => ({ pct: null, drive: s.drive.on ? { ...s.drive, last: t } : s.drive, dropbox: s.dropbox.on ? { ...s.dropbox, last: t } : s.dropbox, snapshots: { ...(s.snapshots || {}), ...(s.drive.on ? { drive: s.items } : {}), ...(s.dropbox.on ? { dropbox: s.items } : {}) } }));
+      this.toast('Encrypted backup saved.');
+    }, 80);
+  }
+  renderVals() {
+    const s = this.state, scr = this.scr(), P = this.props;
+    const catOf = id => CATS.find(c => c.id === id) || CATS[0];
+    const row = (it, fromSearch) => ({ title: it.title, icon: catOf(it.cat).icon, sub: (it.fields.find(f => !f.secret && !f.photo && f.value) || {}).value || catOf(it.cat).single, open: () => this.go('item', { itemId: it.id, fromSearch: !!fromSearch }) });
+    const img = (src, alt) => React.createElement('img', { src, alt, style: { width: '100%', borderRadius: 2, display: 'block' } });
+    // master password
+    const checks = [['12+ characters', s.pw.length >= 12], ['Upper & lower case', /[a-z]/.test(s.pw) && /[A-Z]/.test(s.pw)], ['A number', /\d/.test(s.pw)], ['A symbol', /[^A-Za-z0-9]/.test(s.pw)]];
+    const score = checks.filter(c => c[1]).length;
+    const pwOk = score === 4 && s.pw === s.pw2;
+    // item
+    const item = s.items.find(i => i.id === s.itemId);
+    const blur = P.maskStyle === 'Blur';
+    const fields = item ? item.fields.map((f, i) => ({ f, i })).filter(({ f }) => f.value).map(({ f, i }) => {
+      const open = !f.secret || s.revealed[i];
+      return {
+        isPhoto: !!f.photo, isText: !f.photo, img: f.photo ? img(f.value, f.label) : null, remove: () => upItem(it => ({ ...it, fields: it.fields.filter(x => x !== f) })),
+        label: f.label, secret: f.secret, shown: open || blur ? f.value : '•'.repeat(Math.min(12, Math.max(6, f.value.length))),
+        filter: !open && blur ? 'blur(8px)' : 'none', select: open ? 'text' : 'none',
+        size: f.big && open ? '34px' : '19px', weight: f.big && open ? 600 : 400,
+        eye: open ? 'ph-eye-slash' : 'ph-eye',
+        toggle: () => this.setState({ revealed: { ...s.revealed, [i]: !s.revealed[i] } }),
+        copy: () => this.copy(f.value, f.label),
+      };
+    }) : [];
+    const nf = s.newField, upItem = fn => this.setState({ items: s.items.map(i => i.id === s.itemId ? fn(i) : i), newField: null });
+    const xs = s.addExtras, setX = (i, patch) => this.setState({ addExtras: xs.map((x, j) => j === i ? { ...x, ...patch } : x) });
+    const rsrc = [['drive', 'Google Drive'], ['dropbox', 'Dropbox']].filter(([k]) => s[k].on && s[k].last);
+    const R = s.restore;
+    const E = s.edit, setE = (i, patch) => this.setState({ edit: { ...E, fields: E.fields.map((x, j) => j === i ? { ...x, ...patch } : x) } });
+    // category
+    const cat = catOf(s.catId), catItems = s.items.filter(i => i.cat === s.catId);
+    const q = s.query.trim().toLowerCase();
+    const results = q ? s.items.filter(i => (i.title + ' ' + catOf(i.cat).name + ' ' + i.fields.filter(f => !f.secret && !f.photo).map(f => f.value).join(' ')).toLowerCase().includes(q)) : [];
+    // add
+    const addCat = s.addType ? catOf(s.addType) : null;
+    const setAdd = k => e => this.setState({ addVals: { ...s.addVals, [k]: e.target.value } });
+    const addFields = addCat ? [['Name', 0], ...addCat.fields].map(([label]) => ({ label, value: s.addVals[label] || '', set: setAdd(label) })) : [];
+    // generator
+    const g = s.gen, bits = this.genBits(g), gScore = bits < 45 ? 1 : bits < 70 ? 2 : bits < 100 ? 3 : 4;
+    const ranges = { Password: [8, 40], Passphrase: [3, 8], PIN: [4, 12] };
+    const tg = (label, key) => ({ label, ...this.sw(g[key]), toggle: () => this.setGen({ [key]: !g[key] }) });
+    const genToggles = g.mode === 'Password' ? [tg('Capital letters', 'upper'), tg('Numbers', 'nums'), tg('Symbols', 'syms'), tg('Avoid look‑alikes (l, 1, O, 0)', 'clear')] : g.mode === 'Passphrase' ? [tg('Capitalise words', 'caps'), tg('Add a number', 'addNum')] : [];
+    // backup
+    const anyDest = s.drive.on || s.dropbox.on;
+    const dest = (k, name, icon) => { const d = s[k]; return { name, icon, busy: d.busy, btn: d.busy ? 'Connecting…' : d.on ? 'Disconnect' : 'Connect', btnClass: d.on ? 'btn-ghost' : 'btn-secondary', act: () => this.connect(k), status: d.busy ? 'Waiting for sign‑in' : d.on ? 'dana.okafor@example.com · ' + (d.last ? 'Last backup ' + d.last : 'No backup yet') : 'Not connected' }; };
+    const lastB = [s.drive, s.dropbox].filter(d => d.on && d.last).map(d => d.last)[0];
+    const tabId = scr === 'cat' ? 'home' : scr;
+    return {
+      touch: () => { this.last = Date.now(); },
+      isOnboard: scr === 'onboard', isBio: scr === 'bio', isUnlock: scr === 'unlock', isHome: scr === 'home', isCat: scr === 'cat', isItem: scr === 'item', isAdd: scr === 'add', isGen: scr === 'gen', isBackup: scr === 'backup', isSecurity: scr === 'security',
+      showNav: ['home', 'cat', 'gen', 'backup', 'security'].includes(scr), showFab: (scr === 'home' && !s.reordering) || scr === 'cat',
+      navLabels: P.navLabels ?? true,
+      tabs: [['home', 'Vault', 'ph-vault'], ['gen', 'Generator', 'ph-password'], ['backup', 'Backup', 'ph-cloud-arrow-up'], ['security', 'Security', 'ph-shield-check']].map(([id, label, icon]) => ({ label, icon, go: () => this.go(id, { query: '' }), color: id === tabId ? 'var(--color-accent-700)' : 'var(--color-neutral-700)', weight: id === tabId ? 600 : 400 })),
+      toast: s.toast, hasToast: !!s.toast, toastBottom: ['home', 'cat', 'gen', 'backup', 'security'].includes(scr) ? '80px' : '20px',
+      // onboarding
+      changing: s.changing, onbKicker: s.changing ? 'Security' : 'D-nide · Step 1 of 2', onbTitle: s.changing ? 'Change your master password' : 'Create your master password', onbCta: s.changing ? 'Save new password' : 'Continue',
+      pw: s.pw, pw2: s.pw2, pwType: s.showPw ? 'text' : 'password', pwEye: s.showPw ? 'ph-eye-slash' : 'ph-eye',
+      setPw: e => this.setState({ pw: e.target.value }), setPw2: e => this.setState({ pw2: e.target.value }), toggleShowPw: () => this.setState({ showPw: !s.showPw }),
+      pwMeter: [0, 1, 2, 3].map(i => ({ bg: i < score ? ACC : 'var(--color-neutral-300)' })),
+      pwStrength: s.pw ? ['Too weak', 'Weak', 'Fair', 'Good', 'Strong'][score] : 'Strength',
+      reqs: checks.map(([label, ok]) => ({ label, icon: ok ? 'ph-check-circle' : 'ph-circle', color: ok ? 'var(--color-accent-700)' : 'var(--color-neutral-700)' })),
+      matchMsg: s.pw2 && s.pw !== s.pw2 ? 'The two passwords are different.' : '',
+      pwInvalid: !pwOk,
+      submitMaster: () => { if (!pwOk) return; if (s.changing) { this.go('security', { master: s.pw, pw: '', pw2: '', changing: false }); this.toast('Master password changed.'); } else this.go('bio', { master: s.pw, pw: '', pw2: '' }); },
+      goSecurity: () => this.go('security', { changing: false, pw: '', pw2: '' }),
+      bioYes: () => { this.go('home', { bio: true }); this.toast('Fingerprint unlock is on.'); }, bioNo: () => this.go('home', { bio: false }),
+      // unlock
+      bio: s.bio, unlockPw: s.unlockPw, unlockErr: s.unlockErr, lockMsg: s.lockMsg || 'Enter your master password to open the vault.',
+      setUnlockPw: e => this.setState({ unlockPw: e.target.value, unlockErr: '' }),
+      tryUnlock: () => this.tryUnlock(), unlockKey: e => { if (e.key === 'Enter') this.tryUnlock(); },
+      bioUnlock: () => this.go('home'),
+      // home
+      today: new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+      total: s.items.length, backupLine: lastB ? 'Backed up ' + lastB : 'Not backed up',
+      query: s.query, setQuery: e => this.setState({ query: e.target.value }), searching: !!q, notSearching: !q, results: results.map(i => row(i, true)), noResults: !!q && !results.length,
+      cats: s.catOrder.map((id, idx, all) => { const c = catOf(id); return { name: c.name, icon: c.icon, count: s.items.filter(i => i.cat === c.id).length, open: () => this.go('cat', { catId: c.id }), up: () => this.moveCat(c.id, -1), down: () => this.moveCat(c.id, 1), first: idx === 0, last: idx === all.length - 1, flash: s.moved === c.id ? 'var(--color-accent-100)' : 'transparent' }; }),
+      reordering: s.reordering, notReordering: !s.reordering,
+      reorderLabel: s.reordering ? 'Done' : 'Reorder', reorderIcon: s.reordering ? 'ph-check' : 'ph-arrows-down-up', reorderBtnClass: s.reordering ? 'btn-primary' : 'btn-secondary',
+      toggleReorder: () => this.setState({ reordering: !s.reordering }),
+      resetOrder: () => { this.saveOrder(DEFAULT_ORDER); this.toast('Categories sorted A–Z.'); },
+      goHome: () => this.go('home'),
+      catName: cat.name, catCount: catItems.length + (catItems.length === 1 ? ' item' : ' items'), catItems: catItems.map(i => row(i)), catEmpty: !catItems.length,
+      // item
+      itemCat: item ? catOf(item.cat).single : '', itemTitle: item ? item.title : '', fields,
+      backFromItem: () => s.fromSearch ? this.go('home') : this.go('cat', { catId: item ? item.cat : s.catId }),
+      // add
+      startAdd: () => this.go('add', { addType: scr === 'cat' ? s.catId : null, addVals: {}, addExtras: [] }),
+      addPick: !s.addType, addForm: !!s.addType, addTypes: SORTED.map(c => ({ single: c.single, icon: c.icon, pick: () => this.setState({ addType: c.id, addVals: {}, addExtras: [] }) })),
+      pickItemPhoto: e => this.readPhoto(e, url => { this.setState(st => ({ items: st.items.map(i => i.id === st.itemId ? { ...i, fields: [...i.fields, { label: 'Photo', value: url, photo: true, secret: false }] } : i) })); this.toast('Photo saved to the vault.'); }),
+      pickAddPhoto: e => this.readPhoto(e, url => this.setState(st => ({ addExtras: [...st.addExtras, { name: 'Photo', value: url, secret: false, photo: true }] }))),
+      addExtras: xs.map((x, i) => ({ isPhoto: !!x.photo, isText: !x.photo, img: x.photo ? img(x.value, x.name) : null, name: x.name, value: x.value, secret: x.secret, ...this.sw(x.secret), setName: e => setX(i, { name: e.target.value }), setValue: e => setX(i, { value: e.target.value }), toggleSecret: () => setX(i, { secret: !x.secret }), remove: () => this.setState({ addExtras: xs.filter((_, j) => j !== i) }) })),
+      addExtra: () => this.setState({ addExtras: [...xs, { name: '', value: '', secret: false }] }),
+      dark: s.dark, theme: s.dark ? 'dark' : 'light',
+      viewing: !E, editing: !!E, editTitle: E ? E.title : '', setEditTitle: e => this.setState({ edit: { ...E, title: e.target.value } }),
+      startEdit: () => this.setState({ edit: { title: item.title, fields: item.fields.map(f => ({ ...f })) }, newField: null, revealed: {} }),
+      cancelEdit: () => this.setState({ edit: null }),
+      editFields: E ? E.fields.map((x, i) => ({ label: x.label, value: x.value, secret: x.secret, isPhoto: !!x.photo, isText: !x.photo, img: x.photo ? img(x.value, x.label) : null, ...this.sw(x.secret), setLabel: e => setE(i, { label: e.target.value }), setValue: e => setE(i, { value: e.target.value }), toggleSecret: () => setE(i, { secret: !x.secret }), remove: () => this.setState({ edit: { ...E, fields: E.fields.filter((_, j) => j !== i) } }) })) : [],
+      editInvalid: !(E && E.title.trim()),
+      saveEdit: () => { this.setState({ items: s.items.map(i => i.id === s.itemId ? { ...i, title: E.title.trim(), fields: E.fields.map(f => ({ ...f, label: f.label.trim() || 'Field' })) } : i), edit: null }); this.toast('Changes saved.'); },
+      confirmDelete: s.confirmDelete, askDelete: () => this.setState({ confirmDelete: true }), cancelDelete: () => this.setState({ confirmDelete: false }),
+      doDelete: () => { const c = item.cat; this.go(s.fromSearch ? 'home' : 'cat', { items: s.items.filter(i => i.id !== s.itemId), catId: c, itemId: null }); this.toast('Deleted from the vault.'); },
+      addingField: !!nf, notAddingField: !nf, nfName: nf ? nf.name : '', nfValue: nf ? nf.value : '', nfSecret: !!(nf && nf.secret), nfTrack: this.sw(nf && nf.secret).track, nfKnob: this.sw(nf && nf.secret).knob,
+      startField: () => this.setState({ newField: { name: '', value: '', secret: false } }), cancelField: () => this.setState({ newField: null }),
+      setNfName: e => this.setState({ newField: { ...nf, name: e.target.value } }), setNfValue: e => this.setState({ newField: { ...nf, value: e.target.value } }), toggleNfSecret: () => this.setState({ newField: { ...nf, secret: !nf.secret } }),
+      nfInvalid: !(nf && nf.name.trim() && nf.value.trim()),
+      saveField: () => { upItem(i => ({ ...i, fields: [...i.fields, F(nf.name.trim(), nf.value.trim(), nf.secret)] })); this.toast('Field added.'); },
+      restoreDisabled: !rsrc.length || s.pct !== null,
+      openRestore: () => this.setState({ restore: { src: rsrc[0][0], srcName: rsrc[0][1], pw: '', err: '', pct: null } }),
+      closeRestore: () => this.setState({ restore: null }),
+      restoreOpen: !!R, restoreForm: !!R && R.pct === null, restoreRunning: !!R && R.pct !== null,
+      restoreSources: rsrc.map(([k, name]) => ({ name, when: 'Backed up ' + s[k].last, on: !!R && R.src === k, pick: () => this.setState({ restore: { ...R, src: k, srcName: name } }) })),
+      restorePw: R ? R.pw : '', restoreErr: R ? R.err : '', setRestorePw: e => this.setState({ restore: { ...R, pw: e.target.value, err: '' } }),
+      runRestore: () => this.runRestore(),
+      restorePct: ((R && R.pct) || 0) + '%', restorePhase: ((R && R.pct) || 0) < 45 ? 'Downloading the encrypted file' : 'Decrypting on this phone',
+      addTypeName: addCat ? addCat.single : '', addFields, addInvalid: !(s.addVals.Name || '').trim(),
+      addBack: () => s.catId && s.addType === s.catId ? this.go('cat') : this.go('home'),
+      saveItem: () => {
+        const id = Date.now();
+        const it = { id, cat: addCat.id, title: s.addVals.Name.trim(), fields: addCat.fields.map(([l, sec]) => F(l, (s.addVals[l] || '').trim(), sec, addCat.id === 'locks' && sec)).concat(xs.filter(x => x.name.trim() && x.value.trim()).map(x => x.photo ? { label: x.name.trim(), value: x.value, photo: true, secret: false } : F(x.name.trim(), x.value.trim(), x.secret))) };
+        this.go('item', { items: [...s.items, it], itemId: id, catId: addCat.id, fromSearch: false, addType: null });
+        this.toast('Saved to the vault.');
+      },
+      // generator
+      genModes: this.seg([['Password'], ['Passphrase'], ['PIN']], g.mode, v => this.setGen({ mode: v })),
+      genChars: [...s.genValue].map(ch => ({ ch, color: /[a-zA-Z]/.test(ch) ? 'var(--color-text)' : 'var(--color-accent-700)' })),
+      genSize: s.genValue.length > 30 ? '22px' : '28px',
+      genMeter: [0, 1, 2, 3].map(i => ({ bg: i < gScore ? ACC : 'var(--color-neutral-300)' })), genStrength: ['', 'Weak', 'Fair', 'Good', 'Strong'][gScore],
+      genLenLabel: g.mode === 'Passphrase' ? 'Words' : g.mode === 'PIN' ? 'Digits' : 'Length', genLen: g.lens[g.mode], genMin: ranges[g.mode][0], genMax: ranges[g.mode][1],
+      setGenLen: e => this.setGen({ lens: { ...g.lens, [g.mode]: +e.target.value } }),
+      genToggles, regen: () => this.setGen({}), copyGen: () => this.copy(s.genValue, g.mode),
+      // backup
+      dests: [dest('drive', 'Google Drive', 'ph-google-drive-logo'), dest('dropbox', 'Dropbox', 'ph-dropbox-logo')],
+      backupDisabled: !anyDest || s.pct !== null, noDest: !anyDest, backingUp: s.pct !== null, backupPct: (s.pct || 0) + '%',
+      backupPhase: (s.pct || 0) < 40 ? 'Encrypting the vault on this phone' : 'Uploading the encrypted file',
+      backupNow: () => this.backupNow(),
+      schedules: this.seg([['Off'], ['Daily'], ['Weekly']], s.schedule, v => this.setState({ schedule: v })),
+      scheduleNote: { Off: 'Backups run only when you tap Back up now.', Daily: 'Runs every night while the phone is charging.', Weekly: 'Runs every Sunday night while the phone is charging.' }[s.schedule],
+      wifiOnly: s.wifiOnly, wifiTrack: this.sw(s.wifiOnly).track, wifiKnob: this.sw(s.wifiOnly).knob, toggleWifi: () => this.setState({ wifiOnly: !s.wifiOnly }),
+      // security
+      secToggles: [
+        { label: 'Fingerprint unlock', desc: 'The master password is still required after a restart.', icon: 'ph-fingerprint', ...this.sw(s.bio), toggle: () => this.setState({ bio: !s.bio }) },
+        { label: 'Dark mode', desc: 'Light ink on a dark page.', icon: 'ph-moon', ...this.sw(s.dark), toggle: () => this.setState({ dark: !s.dark }) },
+        { label: 'Block screenshots', desc: 'Stops screen capture and hides D-nide in the app switcher.', icon: 'ph-eye-closed', ...this.sw(s.shots), toggle: () => this.setState({ shots: !s.shots }) },
+      ],
+      lockOpts: this.seg([[30, '30 sec'], [60, '1 min'], [300, '5 min'], [900, '15 min']], s.autoLock, v => { this.setState({ autoLock: v }); }),
+      changeMaster: () => this.go('onboard', { changing: true, pw: '', pw2: '' }),
+      lockNow: () => this.lock(),
+    };
+  }
+  tryUnlock() {
+    const s = this.state;
+    if (!s.unlockPw) return this.setState({ unlockErr: 'Enter your master password.' });
+    if (s.master && s.unlockPw !== s.master) return this.setState({ unlockErr: "That password doesn't match." });
+    this.go('home');
+  }
+}
+</script>
+</body>
+</html>

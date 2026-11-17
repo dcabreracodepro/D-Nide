@@ -1,0 +1,35 @@
+{
+  "v": 1,
+  "mode": "omelette",
+  "root": "project/",
+  "title": "Secure Password Manager App",
+  "entry": "D-nide Vault.dc.html",
+  "pages": [
+    {
+      "path": "D-nide Vault.dc.html",
+      "title": "D-nide Vault",
+      "kind": "page"
+    }
+  ],
+  "migratorVersion": "artifact-migrator (claude-design-backend ed667f7ac9c1)",
+  "createdAt": "2026-11-17T10:32:19.012Z",
+  "source": {
+    "v": 1,
+    "app": "claude-design",
+    "url": "https://claude.ai/design/p/02e58f10-6c08-4dd4-b8bc-2a291e18d30a",
+    "projectId": "02e58f10-6c08-4dd4-b8bc-2a291e18d30a",
+    "exportedAt": "2026-11-17T10:32:19.012Z"
+  },
+  "report": {
+    "itemsVersion": 2,
+    "pages": {
+      "total": 1,
+      "ok": 1,
+      "partial": 0,
+      "notMigrated": 0
+    },
+    "items": [],
+    "truncated": 0,
+    "truncatedLeftOut": 0
+  }
+}
