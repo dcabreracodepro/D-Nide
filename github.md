@@ -1,4 +1,4 @@
-repo: dcabreracodepro/GoGitIt
+repo: dcabreracodepro/D-Nide
 branch: main
 
 ## Last sync
