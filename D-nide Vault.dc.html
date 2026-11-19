@@ -208,7 +208,7 @@ a{color:var(--color-accent-700)}a:hover{color:var(--color-accent-800)}
     </sc-for>
   </div>
   <div style="padding:30px 24px 0;display:flex;flex-direction:column;gap:10px">
-    <sc-if value="{{ notAddingField }}" hint-placeholder-val="{{ true }}"><button class="btn btn-secondary" onClick="{{ startField }}" style="min-height:48px;font-size:16px;align-self:flex-start;padding-inline:20px"><i class="ph-duotone ph-plus" style="font-size:20px"></i>Add a field</button><label class="btn btn-secondary" style="min-height:48px;font-size:16px;align-self:flex-start;padding-inline:20px"><i class="ph-duotone ph-camera" style="font-size:20px"></i>Add a photo<input type="file" accept="image/*" onChange="{{ pickItemPhoto }}" style="display:none"></label></sc-if>
+    <sc-if value="{{ notAddingField }}" hint-placeholder-val="{{ true }}"><button class="btn btn-secondary" onClick="{{ startField }}" style="min-height:48px;font-size:16px;align-self:flex-start;padding-inline:20px"><i class="ph-duotone ph-plus" style="font-size:20px"></i>Add a field</button><label class="btn btn-secondary" style="min-height:48px;font-size:16px;align-self:flex-start;padding-inline:20px"><i class="ph-duotone ph-camera" style="font-size:20px"></i>Add a photo<input type="file" onClick="{{ startPick }}" accept="image/*" onChange="{{ pickItemPhoto }}" style="display:none"></label></sc-if>
     <sc-if value="{{ addingField }}" hint-placeholder-val="{{ false }}">
       <input class="input" placeholder="Field name" value="{{ nfName }}" onChange="{{ setNfName }}" autocomplete="off" style="min-height:48px;font-size:16px">
       <input class="input" placeholder="Value" value="{{ nfValue }}" onChange="{{ setNfValue }}" autocomplete="off" style="min-height:48px;font-size:16px">
@@ -286,7 +286,7 @@ a{color:var(--color-accent-700)}a:hover{color:var(--color-accent-800)}
         </div>
       </sc-for>
       <button class="btn btn-secondary" onClick="{{ addExtra }}" style="min-height:48px;font-size:16px;align-self:flex-start;padding-inline:20px"><i class="ph-duotone ph-plus" style="font-size:20px"></i>Add a field</button>
-      <label class="btn btn-secondary" style="min-height:48px;font-size:16px;align-self:flex-start;padding-inline:20px"><i class="ph-duotone ph-camera" style="font-size:20px"></i>Add a photo<input type="file" accept="image/*" onChange="{{ pickAddPhoto }}" style="display:none"></label>
+      <label class="btn btn-secondary" style="min-height:48px;font-size:16px;align-self:flex-start;padding-inline:20px"><i class="ph-duotone ph-camera" style="font-size:20px"></i>Add a photo<input type="file" onClick="{{ startPick }}" accept="image/*" onChange="{{ pickAddPhoto }}" style="display:none"></label>
       <button class="btn btn-primary" disabled="{{ addInvalid }}" onClick="{{ saveItem }}" style="min-height:48px;font-size:16px;align-self:flex-start;padding-inline:24px">Save to vault</button>
     </div>
   </sc-if>
@@ -356,7 +356,7 @@ a{color:var(--color-accent-700)}a:hover{color:var(--color-accent-800)}
     <div style="font-size:13px;color:var(--color-neutral-700);max-width:310px">Save an encrypted copy anywhere you like, such as a USB drive or email to yourself, and restore it on any device.</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
       <button class="btn btn-secondary" disabled="{{ fileDisabled }}" onClick="{{ downloadBackup }}" style="min-height:48px;font-size:16px;padding-inline:20px"><i class="ph-duotone ph-download-simple" style="font-size:20px"></i>Save backup file</button>
-      <label class="btn btn-secondary" style="min-height:48px;font-size:16px;padding-inline:20px"><i class="ph-duotone ph-upload-simple" style="font-size:20px"></i>Restore from file<input type="file" accept=".dnide,application/json" onChange="{{ pickBackupFile }}" style="display:none"></label>
+      <label class="btn btn-secondary" style="min-height:48px;font-size:16px;padding-inline:20px"><i class="ph-duotone ph-upload-simple" style="font-size:20px"></i>Restore from file<input type="file" onClick="{{ startPick }}" accept=".dnide,application/json" onChange="{{ pickBackupFile }}" style="display:none"></label>
     </div>
   </div>
   <div style="display:flex;flex-direction:column;gap:10px">
@@ -625,9 +625,15 @@ class Component extends DCLogic {
     return DEFAULT_ORDER;
   }
   saveOrder(order) { this.setState({ catOrder: order }); try { localStorage.setItem(ORDER_KEY, JSON.stringify(order)); } catch (e) {} }
+  // Home screen order: categories with something in them first, empty ones at the bottom,
+  // each group keeping the order the user chose.
+  displayOrder() {
+    const s = this.state, list = s.catOrder.map(id => ({ c: CATS.find(x => x.id === id), count: s.items.filter(i => i.cat === id).length })).filter(x => x.c);
+    return [...list.filter(x => x.count > 0), ...list.filter(x => !x.count)];
+  }
   moveCat(id, d) {
-    const o = [...this.state.catOrder], i = o.indexOf(id), j = i + d;
-    if (i < 0 || j < 0 || j >= o.length) return;
+    const shown = this.displayOrder(), o = shown.map(x => x.c.id), i = o.indexOf(id), j = i + d;
+    if (i < 0 || j < 0 || j >= o.length || (shown[i].count > 0) !== (shown[j].count > 0)) return;
     [o[i], o[j]] = [o[j], o[i]];
     this.saveOrder(o);
     this.setState({ moved: id }); clearTimeout(this.mv); this.mv = setTimeout(() => this.setState({ moved: null }), 600);
@@ -635,7 +641,7 @@ class Component extends DCLogic {
   componentDidMount() {
     this.last = Date.now();
     this.tick = setInterval(() => {
-      if (this.unlocked() && Date.now() - this.last > this.state.autoLock * 1000) this.lock('D-nide locked itself after a period without activity.');
+      if (this.unlocked() && !this.isPicking() && Date.now() - this.last > this.state.autoLock * 1000) this.lock('D-nide locked itself after a period without activity.');
     }, 1000);
     this.setState({ genValue: this.make(this.state.gen), catOrder: this.loadOrder() });
     try { navigator.storage && navigator.storage.persist && navigator.storage.persist().catch(() => {}); } catch (e) {}
@@ -643,7 +649,9 @@ class Component extends DCLogic {
       if (env && VaultCrypto.valid(env)) { this.env = env; this.setState({ loaded: true, hasVault: true, items: [], screen: 'unlock', lockMsg: 'Enter your master password to open the vault.' }); }
       else this.setState({ loaded: true });
     }, () => { this.setState({ loaded: true }); this.toast("This browser won't let D-nide store data, so nothing will be saved."); });
-    this.onHide = () => { if (document.hidden && this.unlocked()) this.lock('D-nide locked itself when you switched away.'); };
+    this.onHide = () => {
+      if (!document.hidden && this.pickUntil) { this.pickUntil = 0; this.last = Date.now(); return; } // back from the picker
+      if (document.hidden && this.unlocked() && !this.isPicking()) this.lock('D-nide locked itself when you switched away.'); };
     document.addEventListener('visibilitychange', this.onHide);
   }
   componentDidUpdate() { this.autosave(); }
@@ -729,6 +737,7 @@ class Component extends DCLogic {
     } catch (e) { this.toast("Couldn't create the backup file."); }
   }
   pickBackupFile(e) {
+    this.pickUntil = 0; this.last = Date.now();
     const f = e.target.files && e.target.files[0]; e.target.value = '';
     if (!f) return;
     if (!this.key) return this.toast('Create or unlock your vault first.');
@@ -756,6 +765,10 @@ class Component extends DCLogic {
       this.setState({ restore: { ...r, pct: null, err: e.message === 'WRONG' ? "That password can't decrypt this backup, or the file is damaged." : "That isn't a D-nide backup." } });
     }
   }
+  // Choosing a photo or backup file opens the phone's picker, which hides the page.
+  // Don't treat that as switching away, for up to 3 minutes. After that the normal rules apply again.
+  startPick() { this.pickUntil = Date.now() + 180000; }
+  isPicking() { return !!this.pickUntil && Date.now() < this.pickUntil; }
   // Only first-run setup is exempt from locking; the change-password screen sits inside an open vault.
   unlocked() { const scr = this.scr(); return !['bio', 'unlock'].includes(scr) && !(scr === 'onboard' && !this.state.changing); }
   lock(msg) {
@@ -769,7 +782,7 @@ class Component extends DCLogic {
     clearTimeout(this.ct);
     this.ct = setTimeout(() => { try { navigator.clipboard.writeText('').catch(() => {}); } catch (e) {} }, 30000);
     this.toast(what + ' copied. Clipboard clears in 30 seconds.'); }
-  readPhoto(e, cb) { const f = e.target.files && e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => cb(r.result); r.readAsDataURL(f); e.target.value = ''; }
+  readPhoto(e, cb) { this.pickUntil = 0; this.last = Date.now(); const f = e.target.files && e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => cb(r.result); r.readAsDataURL(f); e.target.value = ''; }
   // Unbiased random integer in [0, n): reject values from the uneven tail so every outcome is equally likely.
   rand(n) {
     const a = new Uint32Array(1), limit = Math.floor(0x100000000 / n) * n;
@@ -873,9 +886,11 @@ class Component extends DCLogic {
     const anyDest = s.drive.on || s.dropbox.on;
     const dest = (k, name, icon) => { const d = s[k]; return { name, icon, busy: d.busy, btn: d.busy ? 'Connecting…' : d.on ? 'Disconnect' : 'Connect', btnClass: d.on ? 'btn-ghost' : 'btn-secondary', act: () => this.connect(k), status: d.busy ? 'Waiting for sign‑in' : d.on ? 'dana.okafor@example.com · ' + (d.last ? 'Last backup ' + d.last : 'No backup yet') : 'Not connected' }; };
     const lastB = [s.drive, s.dropbox].filter(d => d.on && d.last).map(d => d.last)[0];
+    const catList = this.displayOrder();
     const tabId = scr === 'cat' ? 'home' : scr;
     return {
       touch: () => { this.last = Date.now(); },
+      startPick: () => this.startPick(),
       isOnboard: scr === 'onboard', isBio: scr === 'bio', isUnlock: scr === 'unlock', isHome: scr === 'home', isCat: scr === 'cat', isItem: scr === 'item', isAdd: scr === 'add', isGen: scr === 'gen', isBackup: scr === 'backup', isSecurity: scr === 'security',
       showNav: ['home', 'cat', 'gen', 'backup', 'security'].includes(scr), showFab: (scr === 'home' && !s.reordering) || scr === 'cat',
       navLabels: P.navLabels ?? true,
@@ -906,7 +921,7 @@ class Component extends DCLogic {
       today: new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
       total: s.items.length, backupLine: lastB ? 'Backed up ' + lastB : 'Not backed up',
       query: s.query, setQuery: e => this.setState({ query: e.target.value }), searching: !!q, notSearching: !q, results: results.map(i => row(i, true)), noResults: !!q && !results.length,
-      cats: s.catOrder.map((id, idx, all) => { const c = catOf(id); return { name: c.name, icon: c.icon, count: s.items.filter(i => i.cat === c.id).length, open: () => this.go('cat', { catId: c.id }), up: () => this.moveCat(c.id, -1), down: () => this.moveCat(c.id, 1), first: idx === 0, last: idx === all.length - 1, flash: s.moved === c.id ? 'var(--color-accent-100)' : 'transparent' }; }),
+      cats: catList.map(({ c, count }, idx, all) => { const grp = count > 0; return { name: c.name, icon: c.icon, count, open: () => this.go('cat', { catId: c.id }), up: () => this.moveCat(c.id, -1), down: () => this.moveCat(c.id, 1), first: idx === 0 || (all[idx - 1].count > 0) !== grp, last: idx === all.length - 1 || (all[idx + 1].count > 0) !== grp, flash: s.moved === c.id ? 'var(--color-accent-100)' : 'transparent' }; }),
       reordering: s.reordering, notReordering: !s.reordering,
       reorderLabel: s.reordering ? 'Done' : 'Reorder', reorderIcon: s.reordering ? 'ph-check' : 'ph-arrows-down-up', reorderBtnClass: s.reordering ? 'btn-primary' : 'btn-secondary',
       toggleReorder: () => this.setState({ reordering: !s.reordering }),
